@@ -1,6 +1,7 @@
 package com.somewater.jeducation.client.network;
 
 import com.somewater.jeducation.core.model.ProjectChanges;
+import com.somewater.jeducation.core.model.ProjectChangesResponse;
 import com.somewater.jeducation.core.util.RetryException;
 import com.somewater.jeducation.core.util.SerializationUtil;
 
@@ -82,7 +83,11 @@ public class ServerApi {
         }
         ProjectChanges projectChanges = null;
         try {
-            projectChanges = SerializationUtil.bytesToObject(response.body());
+            ProjectChangesResponse projectChangesResponse = SerializationUtil.bytesToObject(response.body());
+            if (projectChangesResponse.errorMessage != null) {
+                throw new RuntimeException("Server respond with error: " + projectChangesResponse.errorMessage);
+            }
+            projectChanges = projectChangesResponse.projectChanges;
         } catch (IOException | ClassNotFoundException e) {
             throw new RetryException("Server response parsing exception", e);
         }

@@ -4,7 +4,7 @@ import com.somewater.jeducation.core.conf.SharedConf;
 
 import java.util.*;
 
-public class ArgsParser {
+abstract public class ArgsParser {
     public static final Set<String> DefaultExts = Set.of("java", "xml", "iml");
 
     public final Map<String, String> opts;
@@ -33,4 +33,10 @@ public class ArgsParser {
                 .map(l -> Set.of(l.split(",")))
                 .orElse(DefaultExts);
     }
+
+    public boolean isHelpParam() {
+        return opts.containsKey("help");
+    }
+
+    abstract public void printHelp();
 }

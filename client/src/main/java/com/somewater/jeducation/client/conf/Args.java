@@ -40,7 +40,7 @@ public class Args extends ArgsParser {
 
     public void printHelp() {
         System.out.println("Use as:\n" +
-                "java -jar ./jeducation-client.jar\n\n" +
+                "java -jar jeducation-client.jar\n\n" +
                 "Optional params:\n" +
                 "  -h IP - server ip (host)\n" +
                 "  -p INT - server port\n" +
@@ -49,6 +49,6 @@ public class Args extends ArgsParser {
                 "  -n STR - project name (current dir name by default)\n" +
                 "  -u STR - user name (random generated file ~/jeducation-config.txt by default)\n" +
                 "  -r - work in readonly mode (ignore file updates from server)\n" +
-                "  -b INT - broadcast port\n");
+                "  -b INT - broadcast port (required for automatic server discovery)\n");
     }
 }

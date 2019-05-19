@@ -34,6 +34,11 @@ public class FileTreeUpdater {
     }
 
     private void createFile(FileChange.CreateFile change, Path filepath) {
+        if (!filepath.getParent().toFile().exists()) {
+            if (!filepath.getParent().toFile().mkdirs()) {
+                throw new RuntimeException("Can't create directory: " + filepath.getParent());
+            }
+        }
         try(var writer = Files.newOutputStream(filepath)) {
             writer.write(change.content);
         } catch (IOException e) {
