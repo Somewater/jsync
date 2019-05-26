@@ -5,7 +5,7 @@ import com.somewater.jeducation.core.manager.FileTreeUpdater;
 import com.somewater.jeducation.core.manager.FileTreeWatcher;
 import com.somewater.jeducation.client.conf.ProjectId;
 import com.somewater.jeducation.client.network.ServerApi;
-import com.somewater.jeducation.client.conf.Uid;
+import com.somewater.jeducation.client.conf.LocalConf;
 import com.somewater.jeducation.core.model.Changes;
 import com.somewater.jeducation.core.model.ProjectChanges;
 import com.somewater.jeducation.core.model.FileChange;
@@ -20,18 +20,18 @@ public class Controller {
     private final ServerApi server;
     private final FileTreeWatcher watcher;
     private final FileTreeUpdater updater;
-    private final Uid uid;
+    private final LocalConf localConf;
     private final ProjectId projectId;
     private final int MaxBatchSize = 10;
     private final int SleepBetweenFileChecksMs = 1000;
 
-    public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, Uid uid,
+    public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, LocalConf localConf,
                       ProjectId projectId) {
         this.args = args;
         this.server = server;
         this.watcher = watcher;
         this.updater = updater;
-        this.uid = uid;
+        this.localConf = localConf;
         this.projectId = projectId;
     }
 
@@ -71,7 +71,7 @@ public class Controller {
     }
 
     private void receiveChanges() {
-        ProjectChanges projectChanges = server.getChanges(uid.get(), projectId.getName());
+        ProjectChanges projectChanges = server.getChanges(localConf.getUid(), projectId.getName());
         updater.update(projectChanges.changes);
     }
 
@@ -83,6 +83,6 @@ public class Controller {
                     .orElseGet(() -> new FileChange.DeleteFile(filepath));
         }).toArray(FileChange[]::new);
         Changes changes = new Changes(fileChange);
-        server.putChanges(new ProjectChanges(changes, uid.get(), projectId.getName()));
+        server.putChanges(new ProjectChanges(changes, localConf.getUid(), projectId.getName()));
     }
 }

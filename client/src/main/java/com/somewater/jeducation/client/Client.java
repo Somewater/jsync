@@ -2,7 +2,7 @@ package com.somewater.jeducation.client;
 
 import com.somewater.jeducation.client.conf.Args;
 import com.somewater.jeducation.client.conf.ProjectId;
-import com.somewater.jeducation.client.conf.Uid;
+import com.somewater.jeducation.client.conf.LocalConf;
 import com.somewater.jeducation.client.controller.Controller;
 import com.somewater.jeducation.client.network.FindServer;
 import com.somewater.jeducation.client.network.ServerApi;
@@ -30,7 +30,6 @@ public class Client {
                 System.exit(-1);
             } catch (RetryException e){
                 System.err.println(e.getMessage());
-                continue;
             } catch (Throwable e) {
                 if (containsCauseClass(e, ConnectException.class)) {
                     continue;
@@ -54,6 +53,10 @@ public class Client {
             args.printHelp();
             return;
         }
+        LocalConf localConf = new LocalConf(args);
+        Path wordDir = Paths.get(System.getProperty("user.dir"));
+        Path projectDir = args.projectDir().map(Paths::get).orElse(wordDir);
+        ProjectId projectId = new ProjectId(projectDir, args.projectName());
 
         String host;
         int port;
@@ -68,14 +71,10 @@ public class Client {
 
         System.out.printf("Server host=%s, port=%d\n", host, port);
         ServerApi server = new ServerApi(host, port);
-        Path wordDir = Paths.get(System.getProperty("user.dir"));
-        Path projectDir = args.projectDir().map(Paths::get).orElse(wordDir);
         if (projectDir.toFile().isDirectory()) {
             FileTreeWatcher watcher = new FileTreeWatcher(projectDir, args.fileExtensions());
             FileTreeUpdater updater = new FileTreeUpdater(projectDir);
-            Uid uid = new Uid(args);
-            ProjectId projectId = new ProjectId(projectDir, args.projectName());
-            Controller controller = new Controller(args, server, watcher, updater, uid, projectId);
+            Controller controller = new Controller(args, server, watcher, updater, localConf, projectId);
             controller.start();
         } else {
             System.out.println("Project directory does not exist: " + projectDir);

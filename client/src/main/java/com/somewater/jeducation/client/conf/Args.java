@@ -38,6 +38,10 @@ public class Args extends ArgsParser {
         return opts.containsKey("r");
     }
 
+    public Optional<String> configPath() {
+        return Optional.ofNullable(opts.get("c"));
+    }
+
     public void printHelp() {
         System.out.println("Use as:\n" +
                 "java -jar jeducation-client.jar\n\n" +
@@ -47,8 +51,9 @@ public class Args extends ArgsParser {
                 "  -e STR - comma separated list of supported file extensions (default " + DefaultExts.toString() + ")\n" +
                 "  -d FILEPATH - directory to watch (current dir for default)\n" +
                 "  -n STR - project name (current dir name by default)\n" +
-                "  -u STR - user name (random generated file ~/jeducation-config.txt by default)\n" +
+                "  -u STR - user name (property 'name' from ~/jeducation-config.txt by default or random generated string value)\n" +
                 "  -r - work in readonly mode (ignore file updates from server)\n" +
-                "  -b INT - broadcast port (required for automatic server discovery)\n");
+                "  -b INT - broadcast port (required for automatic server discovery)\n" +
+                "  -c FILEPATH - path to config (~/jeducation-config.txt by default)");
     }
 }
