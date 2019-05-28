@@ -7,12 +7,14 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
+import java.util.logging.Logger;
 
 public class LocalConf {
     public static String UID = "name";
 
     private final Args args;
     private final Properties conf;
+    private Logger logger = Logger.getLogger(getClass().getName());
 
     public LocalConf(Args args) {
         this.args = args;
@@ -28,14 +30,14 @@ public class LocalConf {
         return args.userName().filter(LocalConf::isCorrectUid).orElse(conf.getProperty(UID));
     }
 
-    private static Optional<Properties> readConfig(File filepath) {
+    private Optional<Properties> readConfig(File filepath) {
         if (filepath.exists()) {
             try(var reader = new BufferedReader(new FileReader(filepath, SharedConf.CHARSET))) {
                 var props = new Properties();
                 props.load(reader);
                 return Optional.of(props);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.severe(e.getMessage());
             }
         }
         return Optional.empty();
@@ -45,13 +47,14 @@ public class LocalConf {
         return isCorrectUid(props.getProperty(UID));
     }
 
-    private static Properties generateConfig(File filepath) {
+    private Properties generateConfig(File filepath) {
         Properties props = randomConfig();
         try (var file = new FileOutputStream(filepath)) {
             props.store(file, "jEducation properties file");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        logger.warning("Config file generated at " + filepath);
         return props;
     }
 

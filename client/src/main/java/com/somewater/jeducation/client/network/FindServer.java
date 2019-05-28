@@ -5,8 +5,12 @@ import com.somewater.jeducation.core.conf.SharedConf;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.logging.Logger;
 
 public class FindServer {
+
+    private Logger logger = Logger.getLogger(getClass().getName());
+
     public HostPort find() {
         try {
             try(DatagramSocket socket = new DatagramSocket()) {
@@ -35,6 +39,7 @@ public class FindServer {
         String result = null;
         while(true) {
             try {
+                logger.info("Try send broadcast message");
                 socket.send(packet);
 
                 socket.receive(receivePacket);
@@ -45,10 +50,11 @@ public class FindServer {
                 }
                 k += SharedConf.DISCOVERY_REPLY.length();
                 result = reply.substring(k).trim();
+                logger.info("Response from server received");
                 break;
-            } catch(SocketTimeoutException ignored) { }
-            catch (IOException e) {
-                e.printStackTrace();
+            } catch(SocketTimeoutException ignored) {
+            } catch (IOException e) {
+                logger.severe(e.getMessage());
             }
         }
         return result;

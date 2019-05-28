@@ -11,4 +11,8 @@ public final class Changes implements Serializable {
     public Changes(FileChange[] files) {
         this.files = files;
     }
+
+    public boolean isEmpty() {
+        return files.length == 0;
+    }
 }

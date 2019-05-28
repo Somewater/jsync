@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Controller {
     private final Args args;
@@ -24,6 +26,7 @@ public class Controller {
     private final ProjectId projectId;
     private final int MaxBatchSize = 10;
     private final int SleepBetweenFileChecksMs = 1000;
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, LocalConf localConf,
                       ProjectId projectId) {
@@ -36,7 +39,7 @@ public class Controller {
     }
 
     public void start() {
-        System.out.println("File watching started on: " + watcher.directory);
+        logger.info("File watching started on: " + watcher.directory);
         while (true) {
             sendAllChanges();
             if (!args.readonly()) {
@@ -46,7 +49,7 @@ public class Controller {
             try {
                 Thread.sleep(SleepBetweenFileChecksMs);
             } catch (InterruptedException e) {
-                System.out.println("File watching stopped");
+                logger.info("File watching stopped");
                 return;
             }
         }
@@ -72,7 +75,15 @@ public class Controller {
 
     private void receiveChanges() {
         ProjectChanges projectChanges = server.getChanges(localConf.getUid(), projectId.getName());
-        updater.update(projectChanges.changes);
+        if (!projectChanges.changes.isEmpty()) {
+            updater.update(projectChanges.changes);
+
+            if (logger.isLoggable(Level.INFO)) {
+                logger.info("Files changed from server:");
+                for (var file : projectChanges.changes.files)
+                    logger.info(String.format("  %8s %s", file.type, file.filepath));
+            }
+        }
     }
 
     private void sendChanges(List<Map.Entry<String, Optional<String>>> requestBuilder) {
@@ -84,5 +95,11 @@ public class Controller {
         }).toArray(FileChange[]::new);
         Changes changes = new Changes(fileChange);
         server.putChanges(new ProjectChanges(changes, localConf.getUid(), projectId.getName()));
+
+        if (logger.isLoggable(Level.INFO)) {
+            logger.info("File changes sended:");
+            for (var file : changes.files)
+                logger.info(String.format("  %8s %s", file.type, file.filepath));
+        }
     }
 }

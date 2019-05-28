@@ -11,22 +11,29 @@ import com.somewater.jeducation.core.manager.FileTreeUpdater;
 import com.somewater.jeducation.core.manager.FileTreeWatcher;
 import com.somewater.jeducation.core.util.RetryException;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * @author pnaydenov
  */
 public class Client {
+    private static Logger logger = Logger.getLogger(Client.class.getName());
+
     public static void main(String[] args0) {
         Args args = new Args(args0);
+        setupLogger();
         while (true) {
             try {
                 run(args);
             } catch (AssertionError e) {
                 args.printHelp();
-                System.out.println(e.getMessage());
+                System.err.println(e.getMessage());
                 System.exit(-1);
             } catch (RetryException e){
                 System.err.println(e.getMessage());
@@ -48,6 +55,18 @@ public class Client {
         return false;
     }
 
+    private static void setupLogger() {
+        try {
+            LogManager.getLogManager().readConfiguration(new ByteArrayInputStream(
+                   ("java.util.logging.ConsoleHandler.level = INFO\n" +
+                    "handlers = java.util.logging.ConsoleHandler\n" +
+                    ".level = INFO\n" +
+                    "java.util.logging.SimpleFormatter.format = [%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS] %4$-6s %5$s%6$s%n\n").getBytes()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void run(Args args) {
         if (args.isHelpParam()) {
             args.printHelp();
@@ -64,12 +83,16 @@ public class Client {
             host = args.serverHost().get();
             port = args.serverPort().orElse(SharedConf.DEFAULT_PORT);
         } else {
+            logger.info("Server host/port unknown, start network discovery");
             var hostPort = new FindServer().find();
             host = hostPort.host;
             port = hostPort.port;
+            logger.info("Discovery completed");
         }
 
-        System.out.printf("Server host=%s, port=%d\n", host, port);
+        logger.info("App started at " + projectDir);
+        logger.info(String.format("Server: %s:%d, project: %s, user: %s",
+                host, port, projectId.getName(), localConf.getUid()));
         ServerApi server = new ServerApi(host, port);
         if (projectDir.toFile().isDirectory()) {
             FileTreeWatcher watcher = new FileTreeWatcher(projectDir, args.fileExtensions());
@@ -77,7 +100,7 @@ public class Client {
             Controller controller = new Controller(args, server, watcher, updater, localConf, projectId);
             controller.start();
         } else {
-            System.out.println("Project directory does not exist: " + projectDir);
+            throw new AssertionError("Project directory does not exist: " + projectDir);
         }
     }
 }
