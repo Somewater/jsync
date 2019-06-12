@@ -105,12 +105,12 @@ public class FileTreeWatcher {
         return md5Hex;
     }
 
-    private String extension(String path) {
-        int i = path.lastIndexOf('.');
-        if (i > 0) {
-            return path.substring(i+1);
+    private String extension(String filename) {
+        int i = filename.lastIndexOf('.');
+        if (i == -1) {
+            return filename;
         } else {
-            return "";
+            return filename.substring(i+1);
         }
     }
 }
