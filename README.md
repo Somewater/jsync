@@ -1,4 +1,9 @@
 # jEducation
+Cross platform client/server app for sync code between teacher and students computers
+
+## Purpose
+1. Monitoring multiple developers at the same time with the maximum convenience.
+2. Live coding collaboration (teacher can fix the student's code and changes will be updated on the source computer).
 
 ## Features:
 1. Free and cross platform, only JRE 11+ required.
@@ -6,10 +11,6 @@
 3. Network bandwidth economy: only changed files are transmitted (single line changes are in the plan but not yet in development).
 4. Automatically filter files with unexpected extension, ignore large files and excessive changes per file.
 5. Security: intruder can't execute malicious code (of course, if you do not run the malicious code by yourself, be careful!).
-
-## Purpose
-1. Monitoring multiple developers at the same time with the maximum convenience.
-2. Live coding collaboration (teacher can fix the student's code and changes will be updated on the source computer).
 
 ## Principle of operation
 student project dir
@@ -33,12 +34,12 @@ teacher projects dir
 ...       
 ```
 
-# Build
+## Build
 ```
 mvn package
 ```
 
-# Run server
+## Run server
 ```
 java -jar server\target\jeducation-server-0.0.1.jar
 
@@ -47,7 +48,7 @@ java -jar server\target\jeducation-server-0.0.1.jar --help
 ```
 
 
-# Run client
+## Run client
 You can distribute a single jar file from `client\target\jeducation-client-0.0.1.jar` between student machines 
 (only Java JRE required), place it into the learning project directory and launch it as:
 
