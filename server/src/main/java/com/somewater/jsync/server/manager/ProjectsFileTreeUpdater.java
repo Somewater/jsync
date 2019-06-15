@@ -53,9 +53,11 @@ public class ProjectsFileTreeUpdater {
 
     public Changes getChanges(String uid, String projectName) {
         ProjectContext project = getOrCreateProject(uid, projectName);
-        return project.watcher
-                .map(watcher -> new Changes(project.watcher.get().changedFilesList().toArray(FileChange[]::new)))
-                .orElseThrow(() -> new RuntimeException(SharedConf.ERROR_MSG_READONLY_SERVER));
+        synchronized (project) {
+            return project.watcher
+                    .map(watcher -> new Changes(project.watcher.get().changedFilesList().toArray(FileChange[]::new)))
+                    .orElseThrow(() -> new RuntimeException(SharedConf.ERROR_MSG_READONLY_SERVER));
+        }
     }
 
     private Path tryCreateProjectDir(String uid, String projectName) {
