@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>com.somewater</groupId>
-        <artifactId>jeducation</artifactId>
+        <artifactId>jsync</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <groupId>com.somewater</groupId>
-    <artifactId>jeducation-core</artifactId>
+    <artifactId>jsync-core</artifactId>
     <version>${VERSION}</version>
 
     

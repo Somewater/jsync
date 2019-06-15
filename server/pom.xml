@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>com.somewater</groupId>
-        <artifactId>jeducation</artifactId>
+        <artifactId>jsync</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <groupId>com.somewater</groupId>
-    <artifactId>jeducation-server</artifactId>
+    <artifactId>jsync-server</artifactId>
     <version>${VERSION}</version>
 
     <properties>
@@ -33,7 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>com.somewater</groupId>
-            <artifactId>jeducation-core</artifactId>
+            <artifactId>jsync-core</artifactId>
             <version>${VERSION}</version>
         </dependency>
 

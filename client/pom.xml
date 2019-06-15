@@ -6,18 +6,18 @@
 
     <parent>
         <groupId>com.somewater</groupId>
-        <artifactId>jeducation</artifactId>
+        <artifactId>jsync</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <groupId>com.somewater</groupId>
-    <artifactId>jeducation-client</artifactId>
+    <artifactId>jsync-client</artifactId>
     <version>${VERSION}</version>
 
     <dependencies>
         <dependency>
             <groupId>com.somewater</groupId>
-            <artifactId>jeducation-core</artifactId>
+            <artifactId>jsync-core</artifactId>
             <version>${VERSION}</version>
         </dependency>
     </dependencies>
@@ -36,7 +36,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.somewater.jeducation.client.Client</mainClass>
+                                    <mainClass>com.somewater.jsync.client.Client</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

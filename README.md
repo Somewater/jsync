@@ -1,4 +1,4 @@
-# jEducation
+# jSync
 Cross platform client/server app for sync code between teacher and students computers
 
 ## Purpose
@@ -41,33 +41,33 @@ mvn package
 
 ## Run server
 ```
-java -jar server\target\jeducation-server-0.0.1.jar
+java -jar server\target\jsync-server-0.0.1.jar
 
 # or with params, use "--help" for more info
-java -jar server\target\jeducation-server-0.0.1.jar --help
+java -jar server\target\jsync-server-0.0.1.jar --help
 ```
 
 
 ## Run client
-You can distribute a single jar file from `client\target\jeducation-client-0.0.1.jar` between student machines 
+You can distribute a single jar file from `client\target\jsync-client-0.0.1.jar` between student machines 
 (only Java JRE required), place it into the learning project directory and launch it as:
 
 ```
-java -jar jeducation-client-0.0.1.jar
+java -jar jsync-client-0.0.1.jar
 
 # or with params, use "--help" for more info
-java -jar jeducation-client-0.0.1.jar --help
+java -jar jsync-client-0.0.1.jar --help
 
 # for example, select another project directory for sync:
-java -jar jeducation-client-0.0.1.jar -d "/path/to/project"
+java -jar jsync-client-0.0.1.jar -d "/path/to/project"
 
 # assign predefined server host/ port:
-java -jar jeducation-client-0.0.1.jar -h my.server.com -p 80
+java -jar jsync-client-0.0.1.jar -h my.server.com -p 80
 
 # set custom synchronizable file extensions:
-java -jar jeducation-client-0.0.1.jar -e h,c,hpp,cpp,Makefile
+java -jar jsync-client-0.0.1.jar -e h,c,hpp,cpp,Makefile
 
 # custom student and project name. Otherwise, Project dir name used as project name.
-# User name also can be changed globally by putting the file "jeducation-config.txt" containing user name to the user home
-java -jar jeducation-client-0.0.1.jar -u MrStudent -p JavaBasics
+# User name also can be changed globally by putting the file "jsync-config.txt" containing user name to the user home
+java -jar jsync-client-0.0.1.jar -u MrStudent -p JavaBasics
 ```  
