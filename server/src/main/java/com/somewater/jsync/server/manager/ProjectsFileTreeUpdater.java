@@ -1,5 +1,6 @@
 package com.somewater.jsync.server.manager;
 
+import com.somewater.jsync.core.conf.SharedConf;
 import com.somewater.jsync.core.manager.FileTreeUpdater;
 import com.somewater.jsync.core.manager.FileTreeWatcher;
 import com.somewater.jsync.core.model.Changes;
@@ -29,7 +30,7 @@ public class ProjectsFileTreeUpdater {
             System.exit(-1);
         } else if (!projectsDir.toFile().exists()) {
             if (!projectsDir.toFile().mkdirs()) {
-                System.out.println("Cannot create projects dir: " + projectsDir);
+                System.out.println("Can not create projects dir: " + projectsDir);
                 System.exit(-1);
             }
         }
@@ -50,15 +51,14 @@ public class ProjectsFileTreeUpdater {
         ProjectContext project = getOrCreateProject(uid, projectName);
         return project.watcher
                 .map(watcher -> new Changes(project.watcher.get().changedFilesList().toArray(FileChange[]::new)))
-                .orElseThrow(() -> new RuntimeException("Server works in readonly mode: " +
-                        "can't fetch changes from server file tree"));
+                .orElseThrow(() -> new RuntimeException(SharedConf.ERROR_MSG_READONLY_SERVER));
     }
 
     private Path tryCreateProjectDir(String uid, String projectName) {
         Path projectRoot = projectsDir.resolve(uid).resolve(projectName);
         if (!projectRoot.toFile().exists()) {
             if (!projectRoot.toFile().mkdirs()) {
-                throw new RuntimeException("Caoont create project dir: " + projectRoot);
+                throw new RuntimeException("Can not create project dir: " + projectRoot);
             }
         }
         return projectRoot;

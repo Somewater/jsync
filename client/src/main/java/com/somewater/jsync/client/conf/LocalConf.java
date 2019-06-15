@@ -6,8 +6,8 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Random;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 public class LocalConf {
     public static String UID = "name";
@@ -15,19 +15,37 @@ public class LocalConf {
     private final Args args;
     private final Properties conf;
     private Logger logger = Logger.getLogger(getClass().getName());
+    public final File configFilepath;
+    private static final Pattern UidPatter = Pattern.compile("[A-Za-z][A-Za-z0-9_]+");
 
     public LocalConf(Args args) {
         this.args = args;
-        File configFilepath = args.configPath()
+        configFilepath = args.configPath()
                 .map(l -> new File(l))
                 .orElseGet(() -> Paths.get(System.getProperty("user.home"), "jsync-config.txt").toFile());
         this.conf = readConfig(configFilepath)
                 .filter(LocalConf::isValid)
-                .orElseGet(() -> generateConfig(configFilepath));
+                .orElseGet(() -> writeConfig(configFilepath, randomConfig()));
     }
 
     public String getUid() {
         return args.userName().filter(LocalConf::isCorrectUid).orElse(conf.getProperty(UID));
+    }
+
+    public void writeUid(String uid) {
+        conf.setProperty(UID, uid);
+        if (isValid(conf)) {
+            writeConfig(configFilepath, conf);
+        } else {
+            StringBuilder sb = new StringBuilder();
+            conf.forEach((k, v) -> {
+                sb.append(k);
+                sb.append('=');
+                sb.append(v);
+                sb.append('\n');
+            });
+            throw new AssertionError("Invalid properties:\n" + sb.toString());
+        }
     }
 
     private Optional<Properties> readConfig(File filepath) {
@@ -47,8 +65,7 @@ public class LocalConf {
         return isCorrectUid(props.getProperty(UID));
     }
 
-    private Properties generateConfig(File filepath) {
-        Properties props = randomConfig();
+    private Properties writeConfig(File filepath, Properties props) {
         try (var file = new FileOutputStream(filepath)) {
             props.store(file, "jsync properties file");
         } catch (IOException e) {
@@ -58,29 +75,14 @@ public class LocalConf {
         return props;
     }
 
-    private static boolean isCorrectUid(String uid) {
-        if (uid == null || uid.isEmpty()) {
+    public static boolean isCorrectUid(String uid) {
+        if (uid == null || uid.isEmpty())
             return false;
-        }
-        for (var c : uid.toCharArray())
-            if (!Character.isLetterOrDigit(c) && c != '_')
-                return false;
-        return true;
+        return UidPatter.matcher(uid).matches();
     }
 
     private static Properties randomConfig() {
         var props = new Properties();
-        props.setProperty(UID, randomUid());
         return props;
-    }
-
-    private static String randomUid() {
-        var r = new Random(System.currentTimeMillis());
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 10; i++) {
-            char c = (char) (r.nextInt('Z' - 'A') + 'A');
-            sb.append(c);
-        }
-        return sb.toString();
     }
 }

@@ -73,9 +73,10 @@ public class Controller {
         }
     }
 
-    private void receiveChanges() {
-        ProjectChanges projectChanges = server.getChanges(localConf.getUid(), projectId.getName());
-        if (!projectChanges.changes.isEmpty()) {
+    private boolean receiveChanges() {
+        Optional<ProjectChanges> projectChangesOpt = server.getChanges(localConf.getUid(), projectId.getName());
+        if (projectChangesOpt.isPresent() && !projectChangesOpt.get().changes.isEmpty()) {
+            var projectChanges = projectChangesOpt.get();
             updater.update(projectChanges.changes);
 
             if (logger.isLoggable(Level.INFO)) {
@@ -83,6 +84,9 @@ public class Controller {
                 for (var file : projectChanges.changes.files)
                     logger.info(String.format("  %8s %s", file.type, file.filepath));
             }
+            return true;
+        } else {
+            return false;
         }
     }
 

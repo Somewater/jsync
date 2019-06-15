@@ -35,9 +35,7 @@ public class Args extends ArgsParser {
                 "  -h IP - server ip (host)\n" +
                 "  -p INT - server port\n" +
                 "  -e STR - comma separated list of supported file extensions (default " + DefaultExts.toString() + ")\n" +
-                "  -d FILEPATH - directory to watch (current dir for default)\n" +
-                "  -n STR - project name (current dir name by default)\n" +
-                "  -u STR - user name (random generated file ~/jsync-config.txt by default)\n" +
+                "  -d FILEPATH - directory to store watched projects ('.\\PROJECTS' by default)\n" +
                 "  -r - work in readonly mode (ignore file updates from server)\n" +
                 "  -b INT - broadcast port\n");
     }

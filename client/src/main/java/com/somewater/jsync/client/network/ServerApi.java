@@ -1,5 +1,6 @@
 package com.somewater.jsync.client.network;
 
+import com.somewater.jsync.core.conf.SharedConf;
 import com.somewater.jsync.core.model.ProjectChanges;
 import com.somewater.jsync.core.model.ProjectChangesResponse;
 import com.somewater.jsync.core.util.RetryException;
@@ -12,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ServerApi {
@@ -59,11 +61,11 @@ public class ServerApi {
         }
     }
 
-    public ProjectChanges getChanges(String uid, String projectName) {
+    public Optional<ProjectChanges> getChanges(String uid, String projectName) {
         return callWithRetry(() -> getChanges0(uid,projectName));
     }
 
-    private ProjectChanges getChanges0(String uid, String projectName) {
+    private Optional<ProjectChanges> getChanges0(String uid, String projectName) {
         HttpRequest request;
         try {
             String path = String.format("/v1/changes/%s/%s", uid, projectName);
@@ -85,13 +87,17 @@ public class ServerApi {
         try {
             ProjectChangesResponse projectChangesResponse = SerializationUtil.bytesToObject(response.body());
             if (projectChangesResponse.errorMessage != null) {
-                throw new RuntimeException("Server respond with error: " + projectChangesResponse.errorMessage);
+                if (projectChangesResponse.errorMessage.equals(SharedConf.ERROR_MSG_READONLY_SERVER)) {
+                    return Optional.empty();
+                } else {
+                    throw new RuntimeException("Server respond with error: " + projectChangesResponse.errorMessage);
+                }
             }
             projectChanges = projectChangesResponse.projectChanges;
         } catch (IOException | ClassNotFoundException e) {
             throw new RetryException("Server response parsing exception", e);
         }
-        return projectChanges;
+        return Optional.of(projectChanges);
     }
 
     private static <T> T callWithRetry(Supplier<T> supplier) {

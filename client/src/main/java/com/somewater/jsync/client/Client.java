@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -28,6 +29,10 @@ public class Client {
     public static void main(String[] args0) {
         Args args = new Args(args0);
         setupLogger();
+        if (args.isHelpParam()) {
+            args.printHelp();
+            return;
+        }
         while (true) {
             try {
                 run(args);
@@ -39,6 +44,7 @@ public class Client {
                 System.err.println(e.getMessage());
             } catch (Throwable e) {
                 if (containsCauseClass(e, ConnectException.class)) {
+                    logger.throwing(Client.class.getName(), "main", e);
                     continue;
                 }
                 throw e;
@@ -68,14 +74,26 @@ public class Client {
     }
 
     private static void run(Args args) {
-        if (args.isHelpParam()) {
-            args.printHelp();
-            return;
-        }
         LocalConf localConf = new LocalConf(args);
         Path wordDir = Paths.get(System.getProperty("user.dir"));
         Path projectDir = args.projectDir().map(Paths::get).orElse(wordDir);
         ProjectId projectId = new ProjectId(projectDir, args.projectName());
+
+        if (localConf.getUid() == null) {
+            System.out.print("Please input your name: ");
+            Scanner input = new Scanner(System.in);
+            while (true) {
+                String uid = input.nextLine().strip();
+                if (LocalConf.isCorrectUid(uid)) {
+                    localConf.writeUid(uid);
+                    logger.info("Name '" + uid + "' saved");
+                    localConf = new LocalConf(args);
+                    break;
+                } else {
+                    System.out.printf("Name '%s' invalid, try again: ", uid);
+                }
+            }
+        }
 
         String host;
         int port;
