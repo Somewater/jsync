@@ -35,9 +35,14 @@ teacher projects dir
 ```
 
 ## Build
+Use [Maven](https://maven.apache.org/) to make project:
 ```
 mvn package
 ```
+
+After package, you can find server and client jar files:
+- `server\target\jsync-server-0.0.1.jar`
+- `client\target\jsync-server-0.0.1.jar`
 
 ## Run server
 ```
@@ -68,6 +73,7 @@ java -jar jsync-client-0.0.1.jar -h my.server.com -p 80
 java -jar jsync-client-0.0.1.jar -e h,c,hpp,cpp,Makefile
 
 # custom student and project name. Otherwise, Project dir name used as project name.
-# User name also can be changed globally by putting the file "jsync-config.txt" containing user name to the user home
+# User name also can be changed globally by putting the file "jsync-config.txt" 
+# containing user name to the user home
 java -jar jsync-client-0.0.1.jar -u MrStudent -p JavaBasics
 ```  
