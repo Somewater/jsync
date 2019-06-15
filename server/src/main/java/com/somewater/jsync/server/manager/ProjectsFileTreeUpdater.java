@@ -5,6 +5,8 @@ import com.somewater.jsync.core.manager.FileTreeUpdater;
 import com.somewater.jsync.core.manager.FileTreeWatcher;
 import com.somewater.jsync.core.model.Changes;
 import com.somewater.jsync.core.model.FileChange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +19,8 @@ public class ProjectsFileTreeUpdater {
     private final Set<String> fileExtensions;
     private final boolean readonly;
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     public ProjectsFileTreeUpdater(Optional<String> projectsDirArg,
                                    Set<String> fileExtensions,
                                    boolean readonly) {
@@ -26,11 +30,11 @@ public class ProjectsFileTreeUpdater {
         Path defaultProjectDir = Paths.get(System.getProperty("user.dir"), "PROJECTS");
         Path projectsDir = projectsDirArg.map(Paths::get).orElse(defaultProjectDir);
         if (projectsDir.toFile().exists() && !projectsDir.toFile().isDirectory()) {
-            System.out.println("Projects dir not directory: " + projectsDir);
+            log.error("Projects dir not directory: " + projectsDir);
             System.exit(-1);
         } else if (!projectsDir.toFile().exists()) {
             if (!projectsDir.toFile().mkdirs()) {
-                System.out.println("Can not create projects dir: " + projectsDir);
+                log.error("Can not create projects dir: " + projectsDir);
                 System.exit(-1);
             }
         }
