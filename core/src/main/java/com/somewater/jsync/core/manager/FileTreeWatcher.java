@@ -17,7 +17,7 @@ public class FileTreeWatcher {
     private static String EMPTY_CACHE = "<empty>";
 
     public final Path directory;
-    private final HashMap<String, String> fileCache;
+    private final HashMap<String, FileInfo> fileCache;
     private final MessageDigest messageDigest;
     private final Set<String> fileExtensions;
 
@@ -55,21 +55,33 @@ public class FileTreeWatcher {
     }
 
     public void clearCacheForFiles(List<String> filepaths) {
-        for (String filepath : filepaths)
-            fileCache.put(filepath, EMPTY_CACHE);
+        for (String filepath : filepaths) {
+            var fileInfo = fileCache.get(filepath);
+            if (fileInfo == null) {
+                fileCache.put(filepath, fileInfo);
+                fileInfo.md5 = EMPTY_CACHE;
+            }
+        }
     }
 
     public void changedFiles(BiConsumer<String, Optional<String>> consumer) {
         Set<String> allKnownFiles = new HashSet<>(fileCache.keySet());
         iterateAllFiles().filter(element -> {
-            var cache = fileCache.get(element.getKey());
-            var contentMd5 = md5(element.getValue());
-            allKnownFiles.remove(element.getKey());
-            if (cache != null && cache.equals(contentMd5)) {
+            var filepath = element.getKey();
+            var content = element.getValue();
+            var fileInfo = fileCache.get(filepath);
+            if (fileInfo == null) {
+                fileCache.put(filepath, new FileInfo());
+            }
+            var md5 = fileInfo.md5;
+            var contentMd5 = md5(content);
+            allKnownFiles.remove(filepath);
+            if (md5 != null && md5.equals(contentMd5)) {
                 return false;
             }
-            fileCache.put(element.getKey(), contentMd5);
-            if (cache != null && cache.equals(EMPTY_CACHE)) {
+            fileInfo.md5 = contentMd5;
+            fileInfo.size = content.getBytes().length;
+            if (md5 != null && md5.equals(EMPTY_CACHE)) {
                 // cache contains special value
                 return false;
             } else {
@@ -90,6 +102,18 @@ public class FileTreeWatcher {
             result.add(change);
         });
         return result;
+    }
+
+    public long fileCount() {
+        return fileCache.size();
+    }
+
+    public long sumFileSize() {
+        return fileCache.values().stream().mapToLong(fi -> fi.size).sum();
+    }
+
+    public long maxFileSize() {
+        return fileCache.values().stream().mapToLong(fi -> fi.size).max().orElse(0);
     }
 
     private String md5(String content) {
@@ -120,5 +144,10 @@ public class FileTreeWatcher {
 
     private static String unifyFileContent(String content) {
         return content.replace("\r\n", "\n");
+    }
+
+    private static class FileInfo {
+        public String md5;
+        public long size;
     }
 }

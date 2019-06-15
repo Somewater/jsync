@@ -5,6 +5,7 @@ import com.somewater.jsync.core.manager.FileTreeUpdater;
 import com.somewater.jsync.core.manager.FileTreeWatcher;
 import com.somewater.jsync.core.model.Changes;
 import com.somewater.jsync.core.model.FileChange;
+import com.somewater.jsync.server.conf.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,15 +21,21 @@ public class ProjectsFileTreeUpdater {
     private final boolean readonly;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final long maxFiles;
+    private final long maxFileSize;
+    private final long sumFileSize;
+    private final long maxProjects;
 
-    public ProjectsFileTreeUpdater(Optional<String> projectsDirArg,
-                                   Set<String> fileExtensions,
-                                   boolean readonly) {
-        this.fileExtensions = fileExtensions;
-        this.readonly = readonly;
+    public ProjectsFileTreeUpdater(Args args) {
+        this.fileExtensions = args.fileExtensions();
+        this.readonly = args.readonly();
+        this.maxFiles = args.maxFiles();
+        this.maxFileSize = args.maxFileSize();
+        this.sumFileSize = args.sumFileSize();
+        this.maxProjects = args.maxProjects();
 
         Path defaultProjectDir = Paths.get(System.getProperty("user.dir"), "PROJECTS");
-        Path projectsDir = projectsDirArg.map(Paths::get).orElse(defaultProjectDir);
+        Path projectsDir = args.projectsDir().map(Paths::get).orElse(defaultProjectDir);
         if (projectsDir.toFile().exists() && !projectsDir.toFile().isDirectory()) {
             log.error("Projects dir not directory: " + projectsDir);
             System.exit(-1);
@@ -43,20 +50,33 @@ public class ProjectsFileTreeUpdater {
     }
 
     public void putChanges(String uid, String projectName, Changes changes) {
+        if (projects.size() > maxProjects) {
+            throw new RuntimeException(String.format("Too many projects: %d", projects.size()));
+        }
         ProjectContext project = getOrCreateProject(uid, projectName);
         synchronized (project) {
+            if (project.watcher.fileCount() > maxFiles) {
+                throw new RuntimeException(String.format("Too many files in project: %d", project.watcher.fileCount()));
+            }
+            if (project.watcher.maxFileSize() > maxFileSize) {
+                throw new RuntimeException(String.format("Too big file in project: %d bytes", project.watcher.maxFileSize()));
+            }
+            if (project.watcher.sumFileSize() > sumFileSize) {
+                throw new RuntimeException(String.format("Too big project size: %d bytes", project.watcher.sumFileSize()));
+            }
             project.updater.update(changes);
             var filepaths = Arrays.stream(changes.files).map(l -> l.filepath).collect(Collectors.toList());
-            project.watcher.ifPresent(w -> w.clearCacheForFiles(filepaths));
+            project.watcher.clearCacheForFiles(filepaths);
         }
     }
 
     public Changes getChanges(String uid, String projectName) {
+        if (readonly) {
+            new RuntimeException(SharedConf.ERROR_MSG_READONLY_SERVER);
+        }
         ProjectContext project = getOrCreateProject(uid, projectName);
         synchronized (project) {
-            return project.watcher
-                    .map(watcher -> new Changes(project.watcher.get().changedFilesList().toArray(FileChange[]::new)))
-                    .orElseThrow(() -> new RuntimeException(SharedConf.ERROR_MSG_READONLY_SERVER));
+            return new Changes(project.watcher.changedFilesList().toArray(FileChange[]::new));
         }
     }
 
@@ -87,12 +107,12 @@ public class ProjectsFileTreeUpdater {
 
     private static class ProjectContext {
         public final FileTreeUpdater updater;
-        public final Optional<FileTreeWatcher> watcher;
+        public final FileTreeWatcher watcher;
         public long version = 0;
 
         public ProjectContext(FileTreeUpdater updater, FileTreeWatcher watcher) {
             this.updater = updater;
-            this.watcher = Optional.ofNullable(watcher);
+            this.watcher = watcher;
         }
     }
 }

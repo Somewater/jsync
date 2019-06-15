@@ -22,7 +22,7 @@ public class Server implements ApplicationRunner {
 
     @Bean
     public ProjectsFileTreeUpdater fileTreeUpdater(Args args) {
-        return new ProjectsFileTreeUpdater(args.projectsDir(), args.fileExtensions(), args.readonly());
+        return new ProjectsFileTreeUpdater(args);
     }
 
     @Override
