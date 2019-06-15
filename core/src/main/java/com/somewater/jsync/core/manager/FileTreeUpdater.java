@@ -3,6 +3,7 @@ package com.somewater.jsync.core.manager;
 import com.somewater.jsync.core.model.Changes;
 import com.somewater.jsync.core.model.FileChange;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +19,7 @@ public class FileTreeUpdater {
 
     public void update(Changes changes) {
         for (var fileChange : changes.files) {
-            Path filepath = projectDir.resolve(Paths.get(fileChange.filepath));
+            Path filepath = projectDir.resolve(Paths.get(adaptFilePath(fileChange.filepath)));
             switch (fileChange.type) {
                 case CREATE:
                     createFile((FileChange.CreateFile) fileChange, filepath);
@@ -40,7 +41,7 @@ public class FileTreeUpdater {
             }
         }
         try(var writer = Files.newOutputStream(filepath)) {
-            writer.write(change.content);
+            writer.write(adaptFileContent(change.content));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -49,8 +50,19 @@ public class FileTreeUpdater {
     private void deleteFile(FileChange.DeleteFile change, Path filepath) {
         if (filepath.toFile().exists() && filepath.toFile().isFile()) {
             filepath.toFile().delete();
+            File directory = filepath.getParent().toFile();
+            while (directory.list().length == 0) {
+                directory.delete();
+                directory = directory.getParentFile();
+            }
         }
     }
 
+    private static String adaptFilePath(String filepath) {
+        return filepath.replace('/', File.separatorChar);
+    }
 
+    private static byte[] adaptFileContent(byte[] content) {
+        return content;
+    }
 }

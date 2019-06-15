@@ -2,6 +2,7 @@ package com.somewater.jsync.core.manager;
 
 import com.somewater.jsync.core.model.FileChange;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -46,7 +47,7 @@ public class FileTreeWatcher {
                         } catch (IOException e) {
                             throw new RuntimeException();
                         }
-                        return Map.entry(filepath, content);
+                        return Map.entry(unifyFilePath(filepath), unifyFileContent(content));
                     });
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -111,5 +112,13 @@ public class FileTreeWatcher {
         } else {
             return filename.substring(i+1);
         }
+    }
+
+    private static String unifyFilePath(String filepath) {
+        return filepath.replace(File.separatorChar, '/');
+    }
+
+    private static String unifyFileContent(String content) {
+        return content.replace("\r\n", "\n");
     }
 }
