@@ -98,7 +98,7 @@ public class ProjectsFileTreeUpdater {
             project = projects.get(key);
             if (project == null) {
                 project = new ProjectContext(new FileTreeUpdater(projectDir),
-                        (readonly ? null : new FileTreeWatcher(projectDir, fileExtensions)));
+                        new FileTreeWatcher(projectDir, fileExtensions));
                 projects.put(key, project);
             }
         }
