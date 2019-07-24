@@ -10,7 +10,9 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class LocalConf {
-    public static String UID = "name";
+    public static String UID_FIELD = "name";
+    public static String HOST_FIELD = "host";
+    public static String PORT_FIELD = "port";
 
     private final Args args;
     private final Properties conf;
@@ -29,11 +31,20 @@ public class LocalConf {
     }
 
     public String getUid() {
-        return args.userName().filter(LocalConf::isCorrectUid).orElse(conf.getProperty(UID));
+        return args.userName().filter(LocalConf::isCorrectUid).orElse(conf.getProperty(UID_FIELD));
+    }
+
+    public Optional<String> getServerHost() {
+        return args.serverHost().or(() -> Optional.ofNullable(conf.getProperty(HOST_FIELD)));
+    }
+
+    public Integer getServerPort() {
+        return args.serverPort()
+                .orElse(Integer.parseInt(conf.getProperty(PORT_FIELD, Integer.toString(SharedConf.DEFAULT_PORT))));
     }
 
     public void writeUid(String uid) {
-        conf.setProperty(UID, uid);
+        conf.setProperty(UID_FIELD, uid);
         if (isValid(conf)) {
             writeConfig(configFilepath, conf);
         } else {
@@ -62,7 +73,7 @@ public class LocalConf {
     }
 
     private static boolean isValid(Properties props) {
-        return isCorrectUid(props.getProperty(UID));
+        return isCorrectUid(props.getProperty(UID_FIELD));
     }
 
     private Properties writeConfig(File filepath, Properties props) {

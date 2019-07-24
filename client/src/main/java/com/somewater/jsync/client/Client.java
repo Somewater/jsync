@@ -97,9 +97,9 @@ public class Client {
 
         String host;
         int port;
-        if (args.serverHost().isPresent()) {
-            host = args.serverHost().get();
-            port = args.serverPort().orElse(SharedConf.DEFAULT_PORT);
+        if (localConf.getServerHost().isPresent()) {
+            host = localConf.getServerHost().get();
+            port = localConf.getServerPort();
         } else {
             logger.info("Server host/port unknown, start network discovery");
             var hostPort = new FindServer().find();
