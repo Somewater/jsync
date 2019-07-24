@@ -58,6 +58,7 @@ public class FileTreeWatcher {
         for (String filepath : filepaths) {
             var fileInfo = fileCache.get(filepath);
             if (fileInfo == null) {
+                fileInfo = new FileInfo();
                 fileCache.put(filepath, fileInfo);
                 fileInfo.md5 = EMPTY_CACHE;
             }
@@ -71,7 +72,8 @@ public class FileTreeWatcher {
             var content = element.getValue();
             var fileInfo = fileCache.get(filepath);
             if (fileInfo == null) {
-                fileCache.put(filepath, new FileInfo());
+                fileInfo = new FileInfo();
+                fileCache.put(filepath, fileInfo);
             }
             var md5 = fileInfo.md5;
             var contentMd5 = md5(content);
