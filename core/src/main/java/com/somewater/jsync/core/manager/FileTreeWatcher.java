@@ -5,6 +5,8 @@ import com.somewater.jsync.core.model.FileChange;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -39,15 +41,24 @@ public class FileTreeWatcher {
         try {
             return Files.walk(directory)
                     .filter(p -> p.toFile().isFile() && fileExtensions.contains(extension(p.toFile().getName())))
-                    .map(path -> {
+                    .flatMap(path -> {
                         String filepath = directory.relativize(path).toString();
+                        if (filepath.startsWith(".")) {
+                            return Stream.empty();
+                        }
                         String content = null;
                         try {
                             content = Files.readString(path);
+                        } catch (MalformedInputException e){
+                            try {
+                                content = Files.readString(path, Charset.forName("latin1"));
+                            } catch (IOException e2) {
+                                throw new RuntimeException("File" + filepath + " read error, retry with latin1", e2);
+                            }
                         } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            throw new RuntimeException("File" + filepath + " read error", e);
                         }
-                        return Map.entry(unifyFilePath(filepath), unifyFileContent(content));
+                        return Stream.of(Map.entry(unifyFilePath(filepath), unifyFileContent(content)));
                     });
         } catch (IOException e) {
             throw new RuntimeException(e);
