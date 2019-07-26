@@ -13,6 +13,8 @@ public class LocalConf {
     public static String UID_FIELD = "name";
     public static String HOST_FIELD = "host";
     public static String PORT_FIELD = "port";
+    public static String LOCAL_SLEEP_MS_FIELD = "local_sleep_ms";
+    public static String REMOTE_SLEEP_MS_FIELD = "remote_sleep_ms";
 
     private final Args args;
     private final Properties conf;
@@ -43,8 +45,22 @@ public class LocalConf {
                 .orElse(Integer.parseInt(conf.getProperty(PORT_FIELD, Integer.toString(SharedConf.DEFAULT_PORT))));
     }
 
+    public Integer getLocalSleepMs() {
+        return args.localSleepMs()
+                .orElse(Integer.parseInt(conf.getProperty(LOCAL_SLEEP_MS_FIELD,
+                        Integer.toString(SharedConf.LOCAL_SLEEP_MS))));
+    }
+
+    public Integer getRemoteSleepMs() {
+        return args.remoteSleepMs()
+                .orElse(Integer.parseInt(conf.getProperty(REMOTE_SLEEP_MS_FIELD,
+                        Integer.toString(SharedConf.REMOTE_SLEEP_MS))));
+    }
+
     public void writeUid(String uid) {
         conf.setProperty(UID_FIELD, uid);
+        conf.setProperty(LOCAL_SLEEP_MS_FIELD, Integer.toString(SharedConf.LOCAL_SLEEP_MS));
+        conf.setProperty(REMOTE_SLEEP_MS_FIELD, Integer.toString(SharedConf.REMOTE_SLEEP_MS));
         if (isValid(conf)) {
             writeConfig(configFilepath, conf);
         } else {

@@ -41,6 +41,14 @@ public class Args extends ArgsParser {
         return Optional.ofNullable(opts.get("c"));
     }
 
+    public Optional<Integer> localSleepMs() {
+        return Optional.ofNullable(opts.get("ls")).map(s -> Integer.parseInt(s));
+    }
+
+    public Optional<Integer> remoteSleepMs() {
+        return Optional.ofNullable(opts.get("rs")).map(s -> Integer.parseInt(s));
+    }
+
     public void printHelp() {
         System.out.println("Use as:\n" +
                 "java -jar jsync-client.jar\n\n" +
@@ -53,6 +61,8 @@ public class Args extends ArgsParser {
                 "  -u STR - user name (property 'name' from ~/jsync-config.txt by default or random generated string value)\n" +
                 "  -r - work in readonly mode (ignore file updates from server)\n" +
                 "  -b INT - broadcast port (required for automatic server discovery)\n" +
-                "  -c FILEPATH - path to config (~/jsync-config.txt by default)");
+                "  -c FILEPATH - path to config (~/jsync-config.txt by default)\n" +
+                "  -ls MILLIS - sleep between local file system checks\n" +
+                "  -rs MILLIS - sleep between remote file system checks\n");
     }
 }

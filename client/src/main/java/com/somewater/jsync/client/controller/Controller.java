@@ -25,7 +25,8 @@ public class Controller {
     private final LocalConf localConf;
     private final ProjectId projectId;
     private final int MaxBatchSize = 10;
-    private final int SleepBetweenFileChecksMs = 1000;
+    private final int localSleepMs;
+    private final int remoteSleepMs;
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, LocalConf localConf,
@@ -36,18 +37,26 @@ public class Controller {
         this.updater = updater;
         this.localConf = localConf;
         this.projectId = projectId;
+
+        localSleepMs = localConf.getLocalSleepMs();
+        remoteSleepMs = localConf.getRemoteSleepMs();
     }
 
     public void start() {
         logger.info("File watching started on: " + watcher.directory);
+        long lastRemoteFileCheck = 0;
         while (true) {
             sendAllChanges();
             if (!args.readonly()) {
-                receiveChanges();
+                long now = System.currentTimeMillis();
+                if (now - lastRemoteFileCheck > remoteSleepMs) {
+                    receiveChanges();
+                    lastRemoteFileCheck = now;
+                }
             }
 
             try {
-                Thread.sleep(SleepBetweenFileChecksMs);
+                Thread.sleep(localSleepMs);
             } catch (InterruptedException e) {
                 logger.info("File watching stopped");
                 return;
