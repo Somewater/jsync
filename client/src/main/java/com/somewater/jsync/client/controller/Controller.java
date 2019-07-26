@@ -56,7 +56,7 @@ public class Controller {
     }
 
     private void sendAllChanges() {
-        ArrayList<Map.Entry<String, Optional<String>>> requestBuilder = new ArrayList<>();
+        ArrayList<Map.Entry<String, Optional<byte[]>>> requestBuilder = new ArrayList<>();
         var files = new Object(){ int value = 0; };
         watcher.changedFiles((filepath, content) -> {
             requestBuilder.add(Map.entry(filepath, content));
@@ -90,11 +90,11 @@ public class Controller {
         }
     }
 
-    private void sendChanges(List<Map.Entry<String, Optional<String>>> requestBuilder) {
+    private void sendChanges(List<Map.Entry<String, Optional<byte[]>>> requestBuilder) {
         FileChange[] fileChange = requestBuilder.stream().map(entry -> {
             String filepath = entry.getKey();
-            Optional<String> content = entry.getValue();
-            return content.<FileChange>map(s -> new FileChange.CreateFile(filepath, s.getBytes()))
+            Optional<byte[]> content = entry.getValue();
+            return content.<FileChange>map(bytes -> new FileChange.CreateFile(filepath, bytes))
                     .orElseGet(() -> new FileChange.DeleteFile(filepath));
         }).toArray(FileChange[]::new);
         Changes changes = new Changes(fileChange);

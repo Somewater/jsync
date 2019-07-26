@@ -5,8 +5,6 @@ import com.somewater.jsync.core.model.FileChange;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -37,7 +35,7 @@ public class FileTreeWatcher {
         fileCache = new HashMap<>();
     }
 
-    public Stream<Map.Entry<String, String>> iterateAllFiles() {
+    public Stream<Map.Entry<String, byte[]>> iterateAllFiles() {
         try {
             return Files.walk(directory)
                     .filter(p -> p.toFile().isFile() && fileExtensions.contains(extension(p.toFile().getName())))
@@ -46,15 +44,9 @@ public class FileTreeWatcher {
                         if (filepath.startsWith(".")) {
                             return Stream.empty();
                         }
-                        String content = null;
+                        byte[] content = null;
                         try {
-                            content = Files.readString(path);
-                        } catch (MalformedInputException e){
-                            try {
-                                content = Files.readString(path, Charset.forName("latin1"));
-                            } catch (IOException e2) {
-                                throw new RuntimeException("File" + filepath + " read error, retry with latin1", e2);
-                            }
+                            content = Files.readAllBytes(path);
                         } catch (IOException e) {
                             throw new RuntimeException("File" + filepath + " read error", e);
                         }
@@ -76,7 +68,7 @@ public class FileTreeWatcher {
         }
     }
 
-    public void changedFiles(BiConsumer<String, Optional<String>> consumer) {
+    public void changedFiles(BiConsumer<String, Optional<byte[]>> consumer) {
         Set<String> allKnownFiles = new HashSet<>(fileCache.keySet());
         iterateAllFiles().filter(element -> {
             var filepath = element.getKey();
@@ -93,7 +85,7 @@ public class FileTreeWatcher {
                 return false;
             }
             fileInfo.md5 = contentMd5;
-            fileInfo.size = content.getBytes().length;
+            fileInfo.size = content.length;
             if (md5 != null && md5.equals(EMPTY_CACHE)) {
                 // cache contains special value
                 return false;
@@ -103,14 +95,14 @@ public class FileTreeWatcher {
         }).forEach(element -> consumer.accept(element.getKey(), Optional.of(element.getValue())));
         allKnownFiles.forEach(l -> {
             fileCache.remove(l);
-            consumer.accept(l, Optional.<String>empty());
+            consumer.accept(l, Optional.empty());
         });
     }
 
     public List<FileChange> changedFilesList() {
         ArrayList<FileChange> result = new ArrayList<>();
         changedFiles((filepath, content) -> {
-            FileChange change = content.<FileChange>map(c -> new FileChange.CreateFile(filepath, c.getBytes()))
+            FileChange change = content.<FileChange>map(c -> new FileChange.CreateFile(filepath, c))
                     .orElseGet(() -> new FileChange.DeleteFile(filepath));
             result.add(change);
         });
@@ -129,10 +121,10 @@ public class FileTreeWatcher {
         return fileCache.values().stream().mapToLong(fi -> fi.size).max().orElse(0);
     }
 
-    private String md5(String content) {
+    private String md5(byte[] content) {
         MessageDigest m = messageDigest;
         m.reset();
-        m.update(content.getBytes());
+        m.update(content);
         var digest = m.digest();
         BigInteger bigInt = new BigInteger(1, digest);
         String md5Hex = bigInt.toString(16);
@@ -155,8 +147,8 @@ public class FileTreeWatcher {
         return filepath.replace(File.separatorChar, '/');
     }
 
-    private static String unifyFileContent(String content) {
-        return content.replace("\r\n", "\n");
+    private static byte[] unifyFileContent(byte[] content) {
+        return content;
     }
 
     private static class FileInfo {
