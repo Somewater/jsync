@@ -45,7 +45,7 @@ public class FileTreeWatcher {
                         try {
                             content = Files.readString(path);
                         } catch (IOException e) {
-                            throw new RuntimeException();
+                            throw new RuntimeException(e);
                         }
                         return Map.entry(unifyFilePath(filepath), unifyFileContent(content));
                     });
