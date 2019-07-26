@@ -40,10 +40,15 @@ public class FileTreeWatcher {
             return Files.walk(directory)
                     .filter(p -> p.toFile().isFile() && fileExtensions.contains(extension(p.toFile().getName())))
                     .flatMap(path -> {
-                        String filepath = directory.relativize(path).toString();
-                        if (filepath.startsWith(".")) {
-                            return Stream.empty();
+                        Path relativePath = directory.relativize(path);
+                        Path fileOrDirName = relativePath;
+                        while (fileOrDirName != null) {
+                            if (fileOrDirName.getFileName().toString().startsWith(".")) {
+                                return Stream.empty();
+                            }
+                            fileOrDirName = fileOrDirName.getParent();
                         }
+                        String filepath = relativePath.toString();
                         byte[] content = null;
                         try {
                             content = Files.readAllBytes(path);
