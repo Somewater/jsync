@@ -3,11 +3,14 @@ package com.somewater.jsync.server.multicast;
 import com.somewater.jsync.core.conf.HostPort;
 import com.somewater.jsync.core.conf.SharedConf;
 import com.somewater.jsync.server.conf.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class MulticastListener {
     private final Args args;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public MulticastListener(Args args) {
         this.args = args;
@@ -22,7 +25,7 @@ public class MulticastListener {
                 try {
                     new DiscoveryServer(payload).listen();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Multicast listener error, restart", e);
                 }
             }
         }).start();

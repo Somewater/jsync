@@ -43,8 +43,8 @@ public class ChangesReceiverController {
             logProjectChanges(false, projectChanges);
             return "OK";
         } catch (Throwable e) {
-            e.printStackTrace();
-            return e.getMessage();
+            log.error("Put changes handler error", e);
+            return exceptionToMessage(e);
         }
     }
 
@@ -58,7 +58,8 @@ public class ChangesReceiverController {
             logProjectChanges(true, projectChanges);
             return SerializationUtil.objectToBytes(ProjectChangesResponse.success(projectChanges));
         } catch (Throwable e) {
-            return SerializationUtil.objectToBytes(ProjectChangesResponse.failed(e.getMessage()));
+            log.error("Get changes handler error", e);
+            return SerializationUtil.objectToBytes(ProjectChangesResponse.failed(exceptionToMessage(e)));
         }
     }
 
@@ -80,5 +81,9 @@ public class ChangesReceiverController {
                 }
             }
         }
+    }
+
+    private String exceptionToMessage(Throwable ex) {
+        return ex.toString();
     }
 }
