@@ -15,6 +15,7 @@ public class LocalConf {
     public static String PORT_FIELD = "port";
     public static String LOCAL_SLEEP_MS_FIELD = "local_sleep_ms";
     public static String REMOTE_SLEEP_MS_FIELD = "remote_sleep_ms";
+    public static String READONLY_FIELD = "readonly";
 
     private final Args args;
     private final Properties conf;
@@ -57,10 +58,15 @@ public class LocalConf {
                         Integer.toString(SharedConf.REMOTE_SLEEP_MS))));
     }
 
+    public boolean getReadonly() {
+        return args.readonly() || conf.getProperty(READONLY_FIELD, "0").equals("1");
+    }
+
     public void writeUid(String uid) {
         conf.setProperty(UID_FIELD, uid);
         conf.setProperty(LOCAL_SLEEP_MS_FIELD, Integer.toString(SharedConf.LOCAL_SLEEP_MS));
         conf.setProperty(REMOTE_SLEEP_MS_FIELD, Integer.toString(SharedConf.REMOTE_SLEEP_MS));
+        conf.setProperty(READONLY_FIELD, "0");
         if (isValid(conf)) {
             writeConfig(configFilepath, conf);
         } else {

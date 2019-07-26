@@ -27,6 +27,7 @@ public class Controller {
     private final int MaxBatchSize = 10;
     private final int localSleepMs;
     private final int remoteSleepMs;
+    private final boolean readonly;
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, LocalConf localConf,
@@ -38,8 +39,9 @@ public class Controller {
         this.localConf = localConf;
         this.projectId = projectId;
 
-        localSleepMs = localConf.getLocalSleepMs();
-        remoteSleepMs = localConf.getRemoteSleepMs();
+        this.localSleepMs = localConf.getLocalSleepMs();
+        this.remoteSleepMs = localConf.getRemoteSleepMs();
+        this.readonly = localConf.getReadonly();
     }
 
     public void start() {
@@ -47,7 +49,7 @@ public class Controller {
         long lastRemoteFileCheck = 0;
         while (true) {
             sendAllChanges();
-            if (!args.readonly()) {
+            if (!readonly) {
                 long now = System.currentTimeMillis();
                 if (now - lastRemoteFileCheck > remoteSleepMs) {
                     receiveChanges();
