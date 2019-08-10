@@ -5,6 +5,10 @@ import com.somewater.jsync.core.model.FileChange;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -49,12 +53,7 @@ public class FileTreeWatcher {
                             fileOrDirName = fileOrDirName.getParent();
                         }
                         String filepath = relativePath.toString();
-                        byte[] content = null;
-                        try {
-                            content = Files.readAllBytes(path);
-                        } catch (IOException e) {
-                            throw new RuntimeException("File" + filepath + " read error", e);
-                        }
+                        byte[] content = readFileWithRetry(path);
                         return Stream.of(Map.entry(unifyFilePath(filepath), unifyFileContent(content)));
                     });
         } catch (IOException e) {
@@ -159,5 +158,20 @@ public class FileTreeWatcher {
     private static class FileInfo {
         public String md5;
         public long size;
+    }
+
+    private byte[] readFileWithRetry(Path filepath) {
+        try {
+            return Files.readAllBytes(filepath);
+        } catch (FileSystemException e) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException("Process interrupted during " + filepath + " reading", e);
+            }
+            return readFileWithRetry(filepath);
+        } catch (IOException e) {
+            throw new RuntimeException("File " + filepath + " read error", e);
+        }
     }
 }
