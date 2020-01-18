@@ -2,11 +2,10 @@ package com.somewater.jsync.client;
 
 import com.somewater.jsync.client.conf.Args;
 import com.somewater.jsync.client.conf.ProjectId;
-import com.somewater.jsync.client.conf.LocalConf;
+import com.somewater.jsync.client.conf.Conf;
 import com.somewater.jsync.client.controller.Controller;
-import com.somewater.jsync.client.network.FindServer;
+import com.somewater.jsync.core.network.FindServer;
 import com.somewater.jsync.client.network.ServerApi;
-import com.somewater.jsync.core.conf.SharedConf;
 import com.somewater.jsync.core.manager.FileTreeUpdater;
 import com.somewater.jsync.core.manager.FileTreeWatcher;
 import com.somewater.jsync.core.util.RetryException;
@@ -74,7 +73,7 @@ public class Client {
     }
 
     private static void run(Args args) {
-        LocalConf localConf = new LocalConf(args);
+        Conf localConf = new Conf(args);
         Path wordDir = Paths.get(System.getProperty("user.dir"));
         Path projectDir = args.projectDir().map(Paths::get).orElse(wordDir);
         ProjectId projectId = new ProjectId(projectDir, args.projectName());
@@ -84,10 +83,10 @@ public class Client {
             Scanner input = new Scanner(System.in);
             while (true) {
                 String uid = input.nextLine().strip();
-                if (LocalConf.isCorrectUid(uid)) {
+                if (Conf.isCorrectUid(uid)) {
                     localConf.writeUid(uid);
                     logger.info("Name '" + uid + "' saved");
-                    localConf = new LocalConf(args);
+                    localConf = new Conf(args);
                     break;
                 } else {
                     System.out.printf("Name '%s' invalid, try again: ", uid);

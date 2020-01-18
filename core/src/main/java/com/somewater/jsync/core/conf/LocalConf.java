@@ -1,65 +1,61 @@
-package com.somewater.jsync.client.conf;
-
-import com.somewater.jsync.core.conf.SharedConf;
+package com.somewater.jsync.core.conf;
 
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class LocalConf {
-    public static String UID_FIELD = "name";
-    public static String HOST_FIELD = "host";
-    public static String PORT_FIELD = "port";
-    public static String LOCAL_SLEEP_MS_FIELD = "local_sleep_ms";
-    public static String REMOTE_SLEEP_MS_FIELD = "remote_sleep_ms";
-    public static String READONLY_FIELD = "readonly";
+    private static String UID_FIELD = "name";
+    private static String HOST_FIELD = "host";
+    private static String PORT_FIELD = "port";
+    private static String LOCAL_SLEEP_MS_FIELD = "local_sleep_ms";
+    private static String REMOTE_SLEEP_MS_FIELD = "remote_sleep_ms";
+    private static String READONLY_FIELD = "readonly";
 
-    private final Args args;
     private final Properties conf;
     private Logger logger = Logger.getLogger(getClass().getName());
     public final File configFilepath;
     private static final Pattern UidPatter = Pattern.compile("[A-Za-z][A-Za-z0-9_]+");
 
-    public LocalConf(Args args) {
-        this.args = args;
-        configFilepath = args.configPath()
-                .map(l -> new File(l))
-                .orElseGet(() -> Paths.get(System.getProperty("user.home"), "jsync-config.txt").toFile());
-        this.conf = readConfig(configFilepath)
+    public LocalConf(String filepath) {
+        configFilepath = Optional.ofNullable(filepath)
+                .map(f -> Paths.get(f).toFile())
+                .orElse(Paths.get(System.getProperty("user.home"), "jsync-config.txt").toFile());
+        this.conf = loadConf();
+    }
+
+    private Properties loadConf() {
+        return readConfig(configFilepath)
                 .filter(LocalConf::isValid)
                 .orElseGet(() -> writeConfig(configFilepath, randomConfig()));
     }
 
     public String getUid() {
-        return args.userName().filter(LocalConf::isCorrectUid).orElse(conf.getProperty(UID_FIELD));
+        return conf.getProperty(UID_FIELD);
     }
 
     public Optional<String> getServerHost() {
-        return args.serverHost().or(() -> Optional.ofNullable(conf.getProperty(HOST_FIELD)));
+        return Optional.ofNullable(conf.getProperty(HOST_FIELD));
     }
 
     public Integer getServerPort() {
-        return args.serverPort()
-                .orElse(Integer.parseInt(conf.getProperty(PORT_FIELD, Integer.toString(SharedConf.DEFAULT_PORT))));
+        return Integer.parseInt(conf.getProperty(PORT_FIELD, Integer.toString(SharedConf.DEFAULT_PORT)));
     }
 
     public Integer getLocalSleepMs() {
-        return args.localSleepMs()
-                .orElse(Integer.parseInt(conf.getProperty(LOCAL_SLEEP_MS_FIELD,
-                        Integer.toString(SharedConf.LOCAL_SLEEP_MS))));
+        return Integer.parseInt(conf.getProperty(LOCAL_SLEEP_MS_FIELD, Integer.toString(SharedConf.LOCAL_SLEEP_MS)));
     }
 
     public Integer getRemoteSleepMs() {
-        return args.remoteSleepMs()
-                .orElse(Integer.parseInt(conf.getProperty(REMOTE_SLEEP_MS_FIELD,
-                        Integer.toString(SharedConf.REMOTE_SLEEP_MS))));
+        return Integer.parseInt(conf.getProperty(REMOTE_SLEEP_MS_FIELD, Integer.toString(SharedConf.REMOTE_SLEEP_MS)));
     }
 
     public boolean getReadonly() {
-        return args.readonly() || conf.getProperty(READONLY_FIELD, "0").equals("1");
+        return conf.getProperty(READONLY_FIELD, "0").equals("1");
     }
 
     public void writeUid(String uid) {
@@ -83,8 +79,8 @@ public class LocalConf {
 
     private Optional<Properties> readConfig(File filepath) {
         if (filepath.exists()) {
-            try(var reader = new BufferedReader(new FileReader(filepath, SharedConf.CHARSET))) {
-                var props = new Properties();
+            try(BufferedReader reader = new BufferedReader(new FileReader(filepath))) {
+                Properties props = new Properties();
                 props.load(reader);
                 return Optional.of(props);
             } catch (IOException e) {
@@ -99,7 +95,7 @@ public class LocalConf {
     }
 
     private Properties writeConfig(File filepath, Properties props) {
-        try (var file = new FileOutputStream(filepath)) {
+        try (FileOutputStream file = new FileOutputStream(filepath)) {
             props.store(file, "jsync properties file");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -115,7 +111,8 @@ public class LocalConf {
     }
 
     private static Properties randomConfig() {
-        var props = new Properties();
+        Properties props = new Properties();
+        props.setProperty("uid", UUID.randomUUID().toString());
         return props;
     }
 }

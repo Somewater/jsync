@@ -5,15 +5,12 @@ import com.somewater.jsync.core.manager.FileTreeUpdater;
 import com.somewater.jsync.core.manager.FileTreeWatcher;
 import com.somewater.jsync.client.conf.ProjectId;
 import com.somewater.jsync.client.network.ServerApi;
-import com.somewater.jsync.client.conf.LocalConf;
+import com.somewater.jsync.client.conf.Conf;
 import com.somewater.jsync.core.model.Changes;
 import com.somewater.jsync.core.model.ProjectChanges;
 import com.somewater.jsync.core.model.FileChange;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +19,7 @@ public class Controller {
     private final ServerApi server;
     private final FileTreeWatcher watcher;
     private final FileTreeUpdater updater;
-    private final LocalConf localConf;
+    private final Conf localConf;
     private final ProjectId projectId;
     private final int MaxBatchSize = 10;
     private final int localSleepMs;
@@ -30,7 +27,7 @@ public class Controller {
     private final boolean readonly;
     private final Logger logger = Logger.getLogger(getClass().getName());
 
-    public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, LocalConf localConf,
+    public Controller(Args args, ServerApi server, FileTreeWatcher watcher, FileTreeUpdater updater, Conf localConf,
                       ProjectId projectId) {
         this.args = args;
         this.server = server;
@@ -70,7 +67,7 @@ public class Controller {
         ArrayList<Map.Entry<String, Optional<byte[]>>> requestBuilder = new ArrayList<>();
         var files = new Object(){ int value = 0; };
         watcher.changedFiles((filepath, content) -> {
-            requestBuilder.add(Map.entry(filepath, content));
+            requestBuilder.add(new AbstractMap.SimpleEntry(filepath, content));
             if (content.isPresent()) {
                 files.value++;
             }

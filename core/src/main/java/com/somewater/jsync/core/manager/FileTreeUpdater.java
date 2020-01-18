@@ -5,6 +5,7 @@ import com.somewater.jsync.core.model.FileChange;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,7 +19,7 @@ public class FileTreeUpdater {
     }
 
     public void update(Changes changes) {
-        for (var fileChange : changes.files) {
+        for (FileChange fileChange : changes.files) {
             Path filepath = projectDir.resolve(Paths.get(adaptFilePath(fileChange.filepath)));
             switch (fileChange.type) {
                 case CREATE:
@@ -40,7 +41,7 @@ public class FileTreeUpdater {
                 throw new RuntimeException("Can't create directory: " + filepath.getParent());
             }
         }
-        try(var writer = Files.newOutputStream(filepath)) {
+        try(OutputStream writer = Files.newOutputStream(filepath)) {
             writer.write(adaptFileContent(change.content));
         } catch (IOException e) {
             throw new RuntimeException(e);

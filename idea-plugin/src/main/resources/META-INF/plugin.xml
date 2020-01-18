@@ -1,0 +1,34 @@
+<idea-plugin>
+    <id>org.example.idea-plugin</id>
+    <name>JSync</name>
+    <vendor email="naydenov.p.v@gmail.com" url="http://java.atlantor.ru">Jsync plugin</vendor>
+
+    <description><![CDATA[
+    Plugin allows sync Intellij IDEA code with JSync server
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.somewater.jsync.idea.JSyncConfService"/>
+        <preloadingActivity implementation="com.somewater.jsync.idea.BootstrapActivity"/>
+    </extensions>
+
+    <actions>
+        <action class="com.somewater.jsync.idea.SwitchAction" id="com.somewater.jsync.idea.SwitchAction"
+                text="Enable Jsync Integration">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
+
+    <application-components>
+        <component>
+            <implementation-class>com.somewater.jsync.idea.JSyncConfService</implementation-class>
+        </component>
+
+        <component>
+            <interface-class>com.somewater.jsync.idea.IController</interface-class>
+            <implementation-class>com.somewater.jsync.idea.ControllerImpl</implementation-class>
+        </component>
+    </application-components>
+</idea-plugin>

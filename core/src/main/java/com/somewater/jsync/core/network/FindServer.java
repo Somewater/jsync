@@ -1,4 +1,4 @@
-package com.somewater.jsync.client.network;
+package com.somewater.jsync.core.network;
 
 import com.somewater.jsync.core.conf.HostPort;
 import com.somewater.jsync.core.conf.SharedConf;

@@ -54,16 +54,20 @@ public class FileTreeWatcher {
                         }
                         String filepath = relativePath.toString();
                         byte[] content = readFileWithRetry(path);
-                        return Stream.of(Map.entry(unifyFilePath(filepath), unifyFileContent(content)));
+                        return Stream.of(entry(unifyFilePath(filepath), unifyFileContent(content)));
                     });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static <K, V> Map.Entry<K, V> entry(K k, V v) {
+        return new AbstractMap.SimpleEntry<>(k, v);
+    }
+
     public void clearCacheForFiles(List<String> filepaths) {
         for (String filepath : filepaths) {
-            var fileInfo = fileCache.get(filepath);
+            FileInfo fileInfo = fileCache.get(filepath);
             if (fileInfo == null) {
                 fileInfo = new FileInfo();
                 fileCache.put(filepath, fileInfo);
@@ -75,15 +79,15 @@ public class FileTreeWatcher {
     public void changedFiles(BiConsumer<String, Optional<byte[]>> consumer) {
         Set<String> allKnownFiles = new HashSet<>(fileCache.keySet());
         iterateAllFiles().filter(element -> {
-            var filepath = element.getKey();
-            var content = element.getValue();
-            var fileInfo = fileCache.get(filepath);
+            String filepath = element.getKey();
+            byte[] content = element.getValue();
+            FileInfo fileInfo = fileCache.get(filepath);
             if (fileInfo == null) {
                 fileInfo = new FileInfo();
                 fileCache.put(filepath, fileInfo);
             }
-            var md5 = fileInfo.md5;
-            var contentMd5 = md5(content);
+            String md5 = fileInfo.md5;
+            String contentMd5 = md5(content);
             allKnownFiles.remove(filepath);
             if (md5 != null && md5.equals(contentMd5)) {
                 return false;
@@ -129,7 +133,7 @@ public class FileTreeWatcher {
         MessageDigest m = messageDigest;
         m.reset();
         m.update(content);
-        var digest = m.digest();
+        byte[] digest = m.digest();
         BigInteger bigInt = new BigInteger(1, digest);
         String md5Hex = bigInt.toString(16);
         while( md5Hex.length() < 32 ){

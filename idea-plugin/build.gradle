@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.15'
+}
+
+group 'com.somewater'
+version '0.0.1'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+configurations {
+    extraLibs
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile group: 'com.somewater', name: 'jsync-core', version: '0.0.1'
+    extraLibs group: 'com.somewater', name: 'jsync-core', version: '0.0.1'
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    version '2019.3.1'
+}
+patchPluginXml {
+    changeNotes """
+        JSync plugin"""
+}
+
+publishPlugin {
+    token intellijPublishToken
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

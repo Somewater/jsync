@@ -5,12 +5,17 @@ import com.somewater.jsync.core.conf.SharedConf;
 import java.util.*;
 
 abstract public class ArgsParser {
-    public static final Set<String> DefaultExts = Set.of("java", "xml", "iml");
+    public static final Set<String> DefaultExts = new HashSet<>();
+    static {
+        DefaultExts.add("java");
+        DefaultExts.add("xml");
+        DefaultExts.add("iml");
+    }
 
     public final Map<String, String> opts;
 
     public ArgsParser(String[] args) {
-        var opts = new HashMap<String, String>();
+        Map<String, String> opts = new HashMap<String, String>();
         String key = null;
         for (String arg : args) {
             if (arg.startsWith("-")) {
@@ -30,7 +35,7 @@ abstract public class ArgsParser {
 
     public Set<String> fileExtensions() {
         return Optional.ofNullable(opts.get("e"))
-                .map(l -> Set.of(l.split(",")))
+                .map(l -> setOf(l.split(",")))
                 .orElse(DefaultExts);
     }
 
@@ -39,4 +44,12 @@ abstract public class ArgsParser {
     }
 
     abstract public void printHelp();
+
+    private static <V> Set<V> setOf(V[] vs) {
+        Set<V> s = new HashSet<>();
+        for (V v : vs) {
+            s.add(v);
+        }
+        return s;
+    }
 }
