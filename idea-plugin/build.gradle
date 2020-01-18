@@ -30,7 +30,7 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
-        JSync plugin"""
+        MVP"""
 }
 
 publishPlugin {

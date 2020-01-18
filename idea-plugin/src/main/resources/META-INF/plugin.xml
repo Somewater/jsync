@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>org.example.idea-plugin</id>
+    <id>com.somewater.jsync</id>
     <name>JSync</name>
-    <vendor email="naydenov.p.v@gmail.com" url="http://java.atlantor.ru">Jsync plugin</vendor>
+    <vendor email="naydenov.p.v@gmail.com" url="https://github.com/Somewater/jsync">Jsync plugin</vendor>
 
     <description><![CDATA[
     Plugin allows sync Intellij IDEA code with JSync server
