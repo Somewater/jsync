@@ -40,12 +40,6 @@ Use [Maven](https://maven.apache.org/) to make project:
 mvn package
 ```
 
-Use Gradle to make Idea plugin
-```
-cd idea-plugin
-gradlew build
-```
-
 After package, you can find server and client jar files:
 - `server\target\jsync-server-0.0.1.jar`
 - `client\target\jsync-server-0.0.1.jar`
