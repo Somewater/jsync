@@ -10,7 +10,7 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.VetoableProjectManagerListener;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ControllerImpl implements IController,
         DocumentListener,
-        VetoableProjectManagerListener,
+        ProjectManagerListener,
         Disposable {
     private JSyncServerApi jSyncServerApi = null;
     private final AtomicBoolean initialStart = new AtomicBoolean(true);
@@ -110,6 +110,11 @@ public class ControllerImpl implements IController,
     }
 
     @Override
+    public void beforeDocumentChange(DocumentEvent event) {
+
+    }
+
+    @Override
     public void documentChanged(@NotNull DocumentEvent event) {
         // Document
         VirtualFile file = FileDocumentManager.getInstance().getFile(event.getDocument());
@@ -136,6 +141,11 @@ public class ControllerImpl implements IController,
             MessageBusConnection c = project.getMessageBus().connect();
             c.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
                 @Override
+                public void before(@NotNull List<? extends VFileEvent> events) {
+
+                }
+
+                @Override
                 public void after(@NotNull List<? extends VFileEvent> events) {
                     afterVFSChange(project, events);
                 }
@@ -144,6 +154,11 @@ public class ControllerImpl implements IController,
 
             initProjectFiles(project);
         }
+    }
+
+    @Override
+    public boolean canCloseProject(Project project) {
+        return true;
     }
 
     private void reinitAllProjects() {
@@ -164,7 +179,16 @@ public class ControllerImpl implements IController,
             public void run() {
                 ApplicationManager.getApplication().runReadAction(new Runnable() {
                     public void run() {
-                        ProjectFileIndex.getInstance(project).iterateContent(fileOrDir -> {
+                        ProjectFileIndex.SERVICE.getInstance(project).iterateContent(fileOrDir -> {
+                            if (fileOrDir.isDirectory()) {
+                                return true;
+                            } else {
+                                String ext = fileOrDir.getExtension();
+                                if(ext == null || !ArgsParser.DefaultExts.contains(ext)) {
+                                    return true;
+                                }
+                            }
+
                             Document document = FileDocumentManager.getInstance().getDocument(fileOrDir);
                             if (document == null) {
                                 log.error(fileOrDir.getPath() + " has no content and ignored");
@@ -174,13 +198,6 @@ public class ControllerImpl implements IController,
                                                 document.getText().getBytes()));
                             }
                             return true;
-                        }, file -> {
-                            if (!file.isDirectory()) {
-                                String ext = file.getExtension();
-                                return ext != null && ArgsParser.DefaultExts.contains(ext);
-                            } else {
-                                return false;
-                            }
                         });
                     }
                 });
@@ -196,15 +213,15 @@ public class ControllerImpl implements IController,
         }
     }
 
+    @Override
+    public void projectClosing(Project project) {
+
+    }
+
 
     @Override
     public void dispose() {
 
-    }
-
-    @Override
-    public boolean canClose(@NotNull Project project) {
-        return true;
     }
 
     private void afterVFSChange(Project project, @NotNull List<? extends VFileEvent> events) {
@@ -233,7 +250,7 @@ public class ControllerImpl implements IController,
                 Document document = FileDocumentManager.getInstance().getDocument(file);
                 if (document != null) {
                     getOrCreate(project).add(new FileChange.DeleteFile(toRelativePath(moveEvent.getOldPath())));
-                    getOrCreate(project).add(new FileChange.CreateFile(toRelativePath(moveEvent.getNewPath()),
+                    getOrCreate(project).add(new FileChange.CreateFile(toRelativePath(moveEvent.getPath()),
                             document.getText().getBytes()));
                     tryToSendChanges();
                 }
@@ -244,7 +261,7 @@ public class ControllerImpl implements IController,
                     Document document = FileDocumentManager.getInstance().getDocument(file);
                     if (document != null) {
                         getOrCreate(project).add(new FileChange.DeleteFile(toRelativePath(propertyChangeEvent.getOldPath())));
-                        getOrCreate(project).add(new FileChange.CreateFile(toRelativePath(propertyChangeEvent.getNewPath()),
+                        getOrCreate(project).add(new FileChange.CreateFile(toRelativePath(propertyChangeEvent.getPath()),
                                 document.getText().getBytes()));
                         tryToSendChanges();
                     }

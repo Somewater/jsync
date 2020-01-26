@@ -15,6 +15,7 @@ public class BootstrapActivity extends PreloadingActivity {
         if (confService.getConf().getServerHost().isPresent()) {
             confService.setHostPort(new HostPort(confService.getConf().getServerHost().get(),
                     confService.getConf().getServerPort()));
+            showConnectMessage(confService);
             confService.setInited();
             startPlugin();
         } else {
@@ -22,6 +23,7 @@ public class BootstrapActivity extends PreloadingActivity {
                 HostPort hostPort = new com.somewater.jsync.core.network.FindServer().find();
                 confService.setHostPort(hostPort);
                 confService.setInited();
+                showConnectMessage(confService);
                 startPlugin();
             } catch (RuntimeException ex) {
                 Messages.showInfoMessage("JSync service not found", "ERROR");
@@ -33,5 +35,13 @@ public class BootstrapActivity extends PreloadingActivity {
     private void startPlugin() {
         IController listener = ApplicationManager.getApplication().getComponent(IController.class);
         listener.start();
+    }
+
+    private void showConnectMessage(JSyncConfService confService) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            Messages.showInfoMessage("Try to connect to " +
+                            confService.getHostPort().host + ":" + confService.getHostPort().port + " server",
+                    "Jsync server connection");
+        });
     }
 }

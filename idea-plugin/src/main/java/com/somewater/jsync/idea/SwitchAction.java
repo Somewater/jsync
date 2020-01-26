@@ -25,9 +25,9 @@ public class SwitchAction extends AnAction {
     private void setTextAccordingToState(AnActionEvent e) {
         IController controller = ApplicationManager.getApplication().getComponent(IController.class);
         if (controller.isEnabled()) {
-            e.getPresentation().setText("Enable Jsync Integration");
-        } else {
             e.getPresentation().setText("Disable Jsync Integration");
+        } else {
+            e.getPresentation().setText("Enable Jsync Integration");
         }
     }
 }

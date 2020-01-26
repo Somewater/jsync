@@ -16,7 +16,7 @@
 
     <actions>
         <action class="com.somewater.jsync.idea.SwitchAction" id="com.somewater.jsync.idea.SwitchAction"
-                text="Enable Jsync Integration">
+                text="-">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>
