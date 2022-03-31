@@ -15,7 +15,7 @@
     <version>${VERSION}</version>
 
     <properties>
-        <spring.version>2.1.4.RELEASE</spring.version>
+        <spring.version>2.5.12</spring.version>
     </properties>
 
     <dependencyManagement>
